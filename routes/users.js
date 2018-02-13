@@ -1,22 +1,24 @@
 const express = require('express');
 const router = express.Router();
+const passport = require('passport');
+const LocalStrategy = require('passport-local').Strategy;
 
 var User = require('../models/user');
 
 // Get request for HomePage
-router.get('/register', function(req, res) {
+router.get('/register', function (req, res) {
     res.render('register');
 });
 
 // Login route
-router.get('/login', function(req, res) {
+router.get('/login', function (req, res) {
     res.render('login');
 });
 
 // Register User
-router.post('/register', function(req, res) {
+router.post('/register', function (req, res) {
     var name, email, username, password, password2;
-    
+
     name = req.body.name;
     email = req.body.email;
     username = req.body.username;
@@ -26,14 +28,14 @@ router.post('/register', function(req, res) {
     // Validation
     req.checkBody('name', 'Name is required').notEmpty();
     req.checkBody('email', 'Email is required').notEmpty();
-	req.checkBody('email', 'Email is not valid').isEmail();
-	req.checkBody('username', 'Username is required').notEmpty();
-	req.checkBody('password', 'Password is required').notEmpty();
-	req.checkBody('password2', 'Passwords do not match').equals(req.body.password);
-     
+    req.checkBody('email', 'Email is not valid').isEmail();
+    req.checkBody('username', 'Username is required').notEmpty();
+    req.checkBody('password', 'Password is required').notEmpty();
+    req.checkBody('password2', 'Passwords do not match').equals(req.body.password);
+
     var errors = req.validationErrors();
 
-    if(errors){
+    if (errors) {
         res.render('register', {
             errors: errors
         })
@@ -45,8 +47,8 @@ router.post('/register', function(req, res) {
             password: password
         });
 
-        User.createUser(newUser, function(err, user) {
-            if(err) throw err;
+        User.createUser(newUser, function (err, user) {
+            if (err) throw err;
             console.log(user);
         });
 
@@ -55,5 +57,30 @@ router.post('/register', function(req, res) {
         res.redirect('/users/login');
     }
 });
+
+passport.use(new LocalStrategy(
+    function(username, password, done) {
+      User.getUserByUsername(username, function(err, user) {
+        if(err) throw err;
+        if(!user) {
+            return done(null, false, {message: 'Unknown User'});
+        }
+
+        User.comparePassword(password, user.password, function(err, isMatch) {
+            if(err) throw err;
+            if(isMatch) {
+                return done(null, user);
+            } else {
+                return done(null, false, {message: 'Invalid password'});
+            }
+        });
+      });
+    }));
+
+app.post('/login',
+    passport.authenticate('local', {successRedirect: '/', failureRedirect: '/users/login', failureFlash: true}),
+    function (req, res) {
+        res.redirect('/');
+    });
 
 module.exports = router;
