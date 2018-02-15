@@ -11,3 +11,4 @@ Fork or Clone
 <p>Open another cmmd prompt *make sure it's in Admin mode and also inside the mongodb bin directory wherever you saved it and run 'mongodb' - always have this running.
 <p>Open another cmmd prompt and run 'node app' this will start the app in localhost:4000 because this is where I'm setting the port.
 
+![2](https://user-images.githubusercontent.com/3925903/36260065-3dc8d626-122e-11e8-89aa-390a94bc8780.PNG)
